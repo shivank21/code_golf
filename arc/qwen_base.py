@@ -4,14 +4,34 @@ import sys
 GLOBAL_SEED = 42
 mymsg = ''#用于存储消息
 def myclear():
+    """
+    Clear the global message buffer used for accumulating print messages.
+    """
     global mymsg
     mymsg = ''
 
 def myprint(s):
+    """
+    Append a string to the global message buffer, followed by a newline.
+    Args:
+        s (str): The string to append.
+    """
     global mymsg
     mymsg += s + '\n'
     
-def detect_objects(matrix)->dict:
+def detect_objects(matrix) -> dict:
+    """
+    Detect objects in a 2D matrix, including rectangles, points, and irregular shapes.
+    If the matrix doesn't contain any background (0 values), treat the entire matrix as a single "texture" object.
+
+    Args:
+        matrix (List[List[int]]): A 2D integer matrix with values 0-9, where 0 typically
+                                  represents background and 1-9 represent different objects
+                                  or colors. Matrix should be at most 30x30.
+
+    Returns:
+        dict: A dictionary containing detected objects with their properties and relationships
+    """
     """
     Detect objects in a 2D matrix, including rectangles, points, and irregular shapes.
     If the matrix doesn't contain any background (0 values), treat the entire matrix as a single "texture" object.
@@ -180,7 +200,14 @@ def detect_objects(matrix)->dict:
     return result
 
 # 找到重叠的对象
-def find_overlapping_objects(objects)->list:
+def find_overlapping_objects(objects) -> list:
+    """
+    Find pairs of objects whose bounding boxes overlap.
+    Args:
+        objects (list): List of detected object dictionaries.
+    Returns:
+        list: List of dictionaries describing overlapping object pairs.
+    """
     """Find pairs of objects whose bounding boxes overlap"""
     overlaps = []
     
@@ -225,6 +252,16 @@ def find_overlapping_objects(objects)->list:
     return overlaps
 
 def determine_shape_type(obj_mask, height, width, area):
+    """
+    Determine the type of shape based on its properties.
+    Args:
+        obj_mask (np.ndarray): Binary mask of the object.
+        height (int): Height of the bounding box.
+        width (int): Width of the bounding box.
+        area (int): Area (number of pixels) of the object.
+    Returns:
+        str: The determined shape type (e.g., 'rectangle', 'square', 'point', etc.).
+    """
     """Determine the type of shape based on its properties"""
     # 可选项：点，正方形，长方形，水平线，垂直线，网格，L形，十字，圆形，不规则
     import numpy as np
@@ -282,7 +319,14 @@ def determine_shape_type(obj_mask, height, width, area):
     return 'irregular'
 
 # 判断是否是网格
-def is_grid_pattern(mask)->bool:
+def is_grid_pattern(mask) -> bool:
+    """
+    Detect if a pattern resembles a grid with gaps.
+    Args:
+        mask (np.ndarray): Binary mask of the object.
+    Returns:
+        bool: True if the pattern is grid-like, False otherwise.
+    """
     """Detect if a pattern resembles a grid with gaps"""
     import numpy as np
     
@@ -322,6 +366,13 @@ def is_grid_pattern(mask)->bool:
 
 # 检查是否为L形
 def is_l_shape(mask):
+    """
+    Check if a mask represents an L shape.
+    Args:
+        mask (np.ndarray): Binary mask of the object.
+    Returns:
+        bool: True if the mask is L-shaped, False otherwise.
+    """
     """Check if a mask represents an L shape"""
     import numpy as np
     
@@ -359,7 +410,16 @@ def is_l_shape(mask):
     return filled_corners == 1
 
 # 判断是否为十字
-def is_cross(mask, height, width)->bool:
+def is_cross(mask, height, width) -> bool:
+    """
+    Check if a mask represents a cross shape.
+    Args:
+        mask (np.ndarray): Binary mask of the object.
+        height (int): Height of the bounding box.
+        width (int): Width of the bounding box.
+    Returns:
+        bool: True if the mask is cross-shaped, False otherwise.
+    """
     """Check if a mask represents a cross shape"""
     import numpy as np
     
@@ -382,6 +442,14 @@ def is_cross(mask, height, width)->bool:
 
 # 找到相邻的对象
 def find_adjacent_objects(objects, matrix_shape):
+    """
+    Find pairs of objects that are adjacent to each other.
+    Args:
+        objects (list): List of detected object dictionaries.
+        matrix_shape (tuple): Shape of the original matrix.
+    Returns:
+        list: List of dictionaries describing adjacent object pairs.
+    """
     """Find pairs of objects that are adjacent to each other"""
     import numpy as np
     
@@ -433,6 +501,14 @@ def find_adjacent_objects(objects, matrix_shape):
     return adjacency_list
 
 def determine_spatial_relationship(obj1, obj2):
+    """
+    Determine the spatial relationship between two objects based on their centers and bounding boxes.
+    Args:
+        obj1 (dict): First object dictionary.
+        obj2 (dict): Second object dictionary.
+    Returns:
+        str: Description of the spatial relationship (e.g., 'above', 'to the left of', etc.).
+    """
     """Determine the spatial relationship between two objects"""
     # Get the center points of both objects
     y1_min, x1_min = obj1['coordinates']['top_left']
@@ -476,6 +552,13 @@ def determine_spatial_relationship(obj1, obj2):
     return primary
 
 def get_overlap_description(percentage):
+    """
+    Generate a description of the overlap based on percentage.
+    Args:
+        percentage (float): Overlap percentage (0.0 to 1.0).
+    Returns:
+        str: Description of the overlap degree.
+    """
     """Generate a description of the overlap based on percentage"""
     if percentage >= 0.9:
         return "almost completely overlapping"
@@ -489,6 +572,11 @@ def get_overlap_description(percentage):
         return "minimally overlapping"
     
 def display_object_detection_results(results):
+    """
+    Display the detailed results of object detection with exact coordinates and relationships.
+    Args:
+        results (dict): The result dictionary from detect_objects().
+    """
     """Display the detailed results of object detection with exact coordinates"""
     myprint("\n=== OBJECT DETECTION RESULTS ===")
     myprint(f"Found {len(results['objects'])} objects:")
@@ -574,8 +662,6 @@ myprint("\n\n=== TESTING TEXTURE DETECTION (NO BACKGROUND) ===")
 texture_results = detect_objects(texture_test)
 display_object_detection_results(texture_results)
 
-print(mymsg)
-
 
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
@@ -614,6 +700,13 @@ def set_all_seeds(seed=GLOBAL_SEED):
 set_all_seeds()
 
 def extract_answer_from_r1(response) -> list:
+    """
+    Extract a matrix (list of lists of ints) from a model response string using regex.
+    Args:
+        response (str): The model's response containing a matrix in markdown format.
+    Returns:
+        list: The extracted matrix as a list of lists of ints, or an empty list if not found.
+    """
     # 通过正则，获得list[list[int]]类型的矩阵
     import re
     # Extract matrices like ```matrix\n1 2\n3 4\n```
@@ -639,6 +732,13 @@ def extract_answer_from_r1(response) -> list:
 # Update the extraction function to extract Python code from the response
 # 通过正则，提取convert函数
 def extract_function_from_r1(response) -> str:
+    """
+    Extract a Python function named 'convert' from a model response string using regex.
+    Args:
+        response (str): The model's response containing Python code.
+    Returns:
+        str: The extracted function code as a string, or an empty string if not found.
+    """
     import re
     # Extract Python function between ```python and ```
     pattern = r"```python\s*(def\s+convert\s*\(.*?\).*?)```"
@@ -652,6 +752,13 @@ def extract_function_from_r1(response) -> str:
         return ""
 
 def extract_functions_from_r1(response) -> list:
+    """
+    Extract all Python functions named 'convert' from a model response string using regex.
+    Args:
+        response (str): The model's response containing Python code.
+    Returns:
+        list: List of function code strings.
+    """
     import re
     # Extract Python functions between ```python and ```
     pattern = r"```python\s*(def\s+convert\s*\(.*?\).*?)```"
@@ -663,6 +770,14 @@ def extract_functions_from_r1(response) -> list:
 
 # Function to execute the extracted code and get the result with improved error handling
 def execute_function(function_str, input_matrix):
+    """
+    Execute a Python function string named 'convert' on the given input matrix with error handling and validation.
+    Args:
+        function_str (str): The function code as a string.
+        input_matrix (list): The input matrix to pass to the function.
+    Returns:
+        list: The result of the function execution, or an empty list on error.
+    """
     if not function_str:
         print("Empty function string - nothing to execute")
         return []
@@ -786,6 +901,11 @@ def convert(input):
 print("Extracted function:", extract_function_from_r1(response))
 
 def seed_everything(seed):
+    """
+    Set random seeds for Python, NumPy, and PyTorch to ensure reproducibility.
+    Args:
+        seed (int): The seed value to use.
+    """
     os.environ['PYTHONHASHSEED'] = str(seed)
     random.seed(seed)
     np.random.seed(seed)
@@ -891,6 +1011,13 @@ import json
 
 # 将list[list[int]]转换为字符串，以便发送给llm
 def list2str(lst):
+    """
+    Convert a list of lists of integers to a string representation in markdown matrix format.
+    Args:
+        lst (list): List of lists of integers.
+    Returns:
+        str: String representation of the matrix in markdown format.
+    """
     """Convert a list of integers to a string representation."""
     #[7, 9] [4, 3] -> "79\n43\n"
     #return '\n'.join([''.join(map(str, sublist)) for sublist in lst])
@@ -915,7 +1042,14 @@ with open(sample_submission_path, 'r') as f:
     submission = json.load(f)
 
 # 获得矩阵size，以及每种颜色出现的次数
-def count_colors(matrix)->str:
+def count_colors(matrix) -> str:
+    """
+    Count the occurrences of each color (0-9) in a matrix and return a formatted string.
+    Args:
+        matrix (list): 2D list of integers representing the matrix.
+    Returns:
+        str: String with color counts and matrix dimensions.
+    """
     """
     Count the occurrences of each color (0-9) in a matrix
     Returns a dictionary with the count of each color value
@@ -933,6 +1067,13 @@ def count_colors(matrix)->str:
     return f"{dimensions} {count_str}"
 
 def get_case_llm_input(case_data):
+    """
+    Get the formatted input string for a single ARC case, including all test inputs, color stats, and object detection info.
+    Args:
+        case_data (dict): Dictionary containing 'train' and 'test' data for a case.
+    Returns:
+        list: List of message dicts for the LLM (system and user prompts).
+    """
     """
     Get the formatted input string for a single case, including all test inputs
     Now includes color count statistics and omits row/column information
@@ -996,6 +1137,11 @@ for case_id in arc_data:
         conbiled_solution[case_id] = evaluation_solution[case_id][0]
 
 def llm_predict(batch_data):
+    """
+    Batch prediction function that extracts multiple solutions and applies them to all test inputs.
+    Args:
+        batch_data (list): List of tuples (case_id, message) for each ARC case in the batch.
+    """
     """
     Batch prediction function that extracts multiple solutions and applies them to all test inputs
     """
@@ -1152,6 +1298,13 @@ if len(batch_data) > 0:
     llm_predict(batch_data)
     
 def alter_zero(submission):
+    """
+    Check all case_ids in the submission. If attempt_1 or attempt_2 is empty or [[0]], replace with [[0,0],[0,0]].
+    Args:
+        submission (dict): The submission result dictionary.
+    Returns:
+        dict: The modified submission dictionary.
+    """
     """
     检查submission中的所有case_id，如果存在attempt_1或attempt_2的结果是空或结果为[[0]]，
     则替换为[[0,0],[0,0]]

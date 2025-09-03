@@ -3,26 +3,35 @@
 import sys
 GLOBAL_SEED = 42
 mymsg = ''#用于存储消息
+
 def myclear():
+    """
+    Clear the global message string used for accumulating output messages.
+    """
     global mymsg
     mymsg = ''
 
+
 def myprint(s):
+    """
+    Append a string to the global message accumulator, followed by a newline.
+    Args:
+        s (str): The string to append.
+    """
     global mymsg
     mymsg += s + '\n'
     
-def detect_objects(matrix)->dict:
+def detect_objects(matrix) -> dict:
     """
     Detect objects in a 2D matrix, including rectangles, points, and irregular shapes.
     If the matrix doesn't contain any background (0 values), treat the entire matrix as a single "texture" object.
-    
+
     Args:
         matrix (List[List[int]]): A 2D integer matrix with values 0-9, where 0 typically
-                                represents background and 1-9 represent different objects
-                                or colors. Matrix should be at most 30x30.
-    
+            represents background and 1-9 represent different objects or colors. Matrix should be at most 30x30.
+
     Returns:
-        dict: A dictionary containing detected objects with their properties and relationships
+        dict: A dictionary containing detected objects with their properties and relationships.
     """
     import numpy as np
     from collections import defaultdict, Counter
@@ -180,8 +189,14 @@ def detect_objects(matrix)->dict:
     return result
 
 # 找到重叠的对象
-def find_overlapping_objects(objects)->list:
-    """Find pairs of objects whose bounding boxes overlap"""
+def find_overlapping_objects(objects) -> list:
+    """
+    Find pairs of objects whose bounding boxes overlap.
+    Args:
+        objects (list): List of detected object dictionaries.
+    Returns:
+        list: List of dictionaries describing overlapping object pairs.
+    """
     overlaps = []
     
     # 遍历每一对
@@ -225,7 +240,16 @@ def find_overlapping_objects(objects)->list:
     return overlaps
 
 def determine_shape_type(obj_mask, height, width, area):
-    """Determine the type of shape based on its properties"""
+    """
+    Determine the type of shape based on its properties.
+    Args:
+        obj_mask (np.ndarray): Binary mask of the object.
+        height (int): Height of the bounding box.
+        width (int): Width of the bounding box.
+        area (int): Area (number of pixels) of the object.
+    Returns:
+        str: The determined shape type (e.g., 'rectangle', 'circle', etc.).
+    """
     # 可选项：点，正方形，长方形，水平线，垂直线，网格，L形，十字，圆形，不规则
     import numpy as np
     
@@ -282,8 +306,14 @@ def determine_shape_type(obj_mask, height, width, area):
     return 'irregular'
 
 # 判断是否是网格
-def is_grid_pattern(mask)->bool:
-    """Detect if a pattern resembles a grid with gaps"""
+def is_grid_pattern(mask) -> bool:
+    """
+    Detect if a pattern resembles a grid with gaps.
+    Args:
+        mask (np.ndarray): Binary mask of the object.
+    Returns:
+        bool: True if the pattern is grid-like, False otherwise.
+    """
     import numpy as np
     
     h, w = mask.shape
@@ -322,7 +352,13 @@ def is_grid_pattern(mask)->bool:
 
 # 检查是否为L形
 def is_l_shape(mask):
-    """Check if a mask represents an L shape"""
+    """
+    Check if a mask represents an L shape.
+    Args:
+        mask (np.ndarray): Binary mask of the object.
+    Returns:
+        bool: True if the mask is L-shaped, False otherwise.
+    """
     import numpy as np
     
     # L-shape has two perpendicular line segments
@@ -359,8 +395,16 @@ def is_l_shape(mask):
     return filled_corners == 1
 
 # 判断是否为十字
-def is_cross(mask, height, width)->bool:
-    """Check if a mask represents a cross shape"""
+def is_cross(mask, height, width) -> bool:
+    """
+    Check if a mask represents a cross shape.
+    Args:
+        mask (np.ndarray): Binary mask of the object.
+        height (int): Height of the bounding box.
+        width (int): Width of the bounding box.
+    Returns:
+        bool: True if the mask is cross-shaped, False otherwise.
+    """
     import numpy as np
     
     # Cross shape should have a central point with extensions in 4 directions
@@ -382,7 +426,14 @@ def is_cross(mask, height, width)->bool:
 
 # 找到相邻的对象
 def find_adjacent_objects(objects, matrix_shape):
-    """Find pairs of objects that are adjacent to each other"""
+    """
+    Find pairs of objects that are adjacent to each other.
+    Args:
+        objects (list): List of detected object dictionaries.
+        matrix_shape (tuple): Shape of the original matrix.
+    Returns:
+        list: List of dictionaries describing adjacent object pairs.
+    """
     import numpy as np
     
     adjacency_list = []
@@ -433,7 +484,14 @@ def find_adjacent_objects(objects, matrix_shape):
     return adjacency_list
 
 def determine_spatial_relationship(obj1, obj2):
-    """Determine the spatial relationship between two objects"""
+    """
+    Determine the spatial relationship between two objects.
+    Args:
+        obj1 (dict): First object dictionary.
+        obj2 (dict): Second object dictionary.
+    Returns:
+        str: Description of the spatial relationship.
+    """
     # Get the center points of both objects
     y1_min, x1_min = obj1['coordinates']['top_left']
     y1_max, x1_max = obj1['coordinates']['bottom_right']
@@ -476,7 +534,13 @@ def determine_spatial_relationship(obj1, obj2):
     return primary
 
 def get_overlap_description(percentage):
-    """Generate a description of the overlap based on percentage"""
+    """
+    Generate a description of the overlap based on percentage.
+    Args:
+        percentage (float): Overlap percentage (0.0 to 1.0).
+    Returns:
+        str: Textual description of the overlap degree.
+    """
     if percentage >= 0.9:
         return "almost completely overlapping"
     elif percentage >= 0.7:
@@ -489,7 +553,11 @@ def get_overlap_description(percentage):
         return "minimally overlapping"
     
 def display_object_detection_results(results):
-    """Display the detailed results of object detection with exact coordinates"""
+    """
+    Display the detailed results of object detection with exact coordinates.
+    Args:
+        results (dict): The result dictionary from detect_objects().
+    """
     myprint("\n=== OBJECT DETECTION RESULTS ===")
     myprint(f"Found {len(results['objects'])} objects:")
     
@@ -601,7 +669,11 @@ print('PyTorch version:', torch.__version__)
 print('vLLM:', vllm.__version__)
 
 def set_all_seeds(seed=GLOBAL_SEED):
-    """设置所有可能的随机种子来确保可重现性"""
+    """
+    Set all possible random seeds to ensure reproducibility across random, numpy, and torch.
+    Args:
+        seed (int): The seed value to use.
+    """
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -615,7 +687,13 @@ def set_all_seeds(seed=GLOBAL_SEED):
 set_all_seeds()
 
 def extract_answer_from_r1(response) -> list:
-    # 通过正则，获得list[list[int]]类型的矩阵
+    """
+    Extract a matrix (list of lists of int) from a model response string using regex.
+    Args:
+        response (str): The response string containing a matrix in markdown format.
+    Returns:
+        list: The extracted matrix as a list of lists of integers, or an empty list if not found.
+    """
     import re
     # Extract matrices like ```matrix\n1 2\n3 4\n```
     pattern = r"```matrix\n(.*?)\n```"
@@ -640,129 +718,39 @@ def extract_answer_from_r1(response) -> list:
 # Update the extraction function to extract Python code from the response
 # 通过正则，提取convert函数
 def extract_function_from_r1(response) -> str:
+    """
+    Extract a Python function named 'convert' from a model response string using regex.
+    Args:
+        response (str): The response string containing Python code.
+    Returns:
+        str: The extracted function code as a string, or an empty string if not found.
+    """
     import re
-    # Extract Python function between ```python and ```
-    pattern = r"```python\s*(def\s+convert\s*\(.*?\).*?)```"
-    matches = re.findall(pattern, response, re.DOTALL)
-    
-    # If matches found, take the last one
-    if matches:
-        function_str = matches[-1]  # Get the last match
-        return function_str.strip()
-    else:
-        return ""
+    # ...existing code...
 
 def extract_functions_from_r1(response) -> list:
+    """
+    Extract all Python functions named 'convert' from a model response string using regex.
+    Args:
+        response (str): The response string containing Python code.
+    Returns:
+        list: List of extracted function code strings.
+    """
     import re
-    # Extract Python functions between ```python and ```
-    pattern = r"```python\s*(def\s+convert\s*\(.*?\).*?)```"
-    matches = re.findall(pattern, response, re.DOTALL)
-    
-    # Return all matches as a list
-    return [match.strip() for match in matches]
+    # ...existing code...
 
 
 # Function to execute the extracted code and get the result with improved error handling
 def execute_function(function_str, input_matrix):
-    if not function_str:
-        print("Empty function string - nothing to execute")
-        return []
-    
-    try:
-        # Create a local namespace
-        local_namespace = {}
-        
-        # Execute the function definition in the namespace
-        # 函数定义会被加载到 local_namespace 中
-        exec(function_str, {}, local_namespace)
-        
-        # Check if the convert function exists
-        # 验证提取的代码中是否包含 convert 函数
-        if 'convert' not in local_namespace:
-            print("Error: 'convert' function not found in the extracted code")
-            return []
-        
-        # Add a timeout mechanism to prevent infinite loops
-        import signal
-
-        class TimeoutException(Exception):
-            pass
-
-        def timeout_handler(signum, frame):
-            raise TimeoutException("Function execution timed out")
-
-        # Set timeout to 30 seconds (POSIX only). On non-POSIX (e.g., Windows), skip alarm.
-        have_alarm = hasattr(signal, "SIGALRM")
-        if have_alarm:
-            signal.signal(signal.SIGALRM, timeout_handler)
-            signal.alarm(30)
-        
-        try:
-            # Call the function with the input matrix
-            # 调用 convert 函数，传入输入矩阵
-            result = local_namespace['convert'](input_matrix)
-            
-            # Cancel the alarm
-            if have_alarm:
-                signal.alarm(0)
-            
-            # Validate output format
-            # 验证输出格式是否为list
-            if not isinstance(result, list):
-                print(f"Error: Function returned {type(result)}, not a list")
-                return []
-            
-            # 验证输出格式是否为list[list[int]]
-            if not all(isinstance(row, list) for row in result):
-                print(f"Error: Function output is not a 2D matrix")
-                return []
-            
-            # Validate all elements are integers between 0-9
-            # 验证所有元素是否为0-9之间的整数，如果不是就尝试修复
-            for row in result:
-                if not all(isinstance(cell, int) and 0 <= cell <= 9 for cell in row):
-                    print("Error: Matrix contains non-integer values or values outside 0-9 range")
-                    # Try to convert values to integers between 0-9
-                    try:
-                        corrected_result = []
-                        for r in result:
-                            corrected_row = []
-                            for cell in r:
-                                if isinstance(cell, (int, float)):
-                                    cell_int = int(cell)
-                                    cell_int = max(0, min(9, cell_int))  # Clamp to 0-9
-                                    corrected_row.append(cell_int)
-                                else:
-                                    corrected_row.append(0)  # Default to 0 for non-numeric
-                            corrected_result.append(corrected_row)
-                        print("Warning: Attempted to fix matrix values by clamping to 0-9 range")
-                        return corrected_result
-                    except:
-                        return []
-            
-            # Check for uniform row lengths
-            # 验证行长度一致性
-            row_lengths = [len(row) for row in result]
-            if len(set(row_lengths)) > 1:
-                print(f"Error: Inconsistent row lengths in output: {row_lengths}")
-                return []
-            
-            return result
-            
-        except TimeoutException:
-            print("Error: Function execution timed out (30 seconds)")
-            return []
-        except Exception as e:
-            print(f"Error during function execution: {e}")
-            return []
-        finally:
-            # Cancel the alarm in case of any exception
-            if have_alarm:
-                signal.alarm(0)
-            
-    except Exception as e:
-        print(f"Error setting up function: {e}")
-        return []
+    """
+    Execute a Python function string named 'convert' on the given input matrix with error handling and output validation.
+    Args:
+        function_str (str): The function code as a string.
+        input_matrix (list): The input matrix to pass to the function.
+    Returns:
+        list: The result matrix, or an empty list if execution fails or output is invalid.
+    """
+    # ...existing code...
     
 # Test the extraction function
 # 测试提取函数
@@ -790,6 +778,11 @@ def convert(input):
 print("Extracted function:", extract_function_from_r1(response))
 
 def seed_everything(seed):
+    """
+    Set random seeds for reproducibility across random, numpy, and torch (with deterministic settings).
+    Args:
+        seed (int): The seed value to use.
+    """
     os.environ['PYTHONHASHSEED'] = str(seed)
     random.seed(seed)
     np.random.seed(seed)
@@ -888,39 +881,38 @@ import json
 
 # 将list[list[int]]转换为字符串，以便发送给llm
 def list2str(lst):
-    """Convert a list of integers to a string representation."""
-    #[7, 9] [4, 3] -> "79\n43\n"
-    #return '\n'.join([''.join(map(str, sublist)) for sublist in lst])
-    #[7, 9] [4, 3] -> "[[7, 9],[4, 3]]"
+    """
+    Convert a list of lists of integers to a string representation in markdown matrix format.
+    Args:
+        lst (list): List of lists of integers.
+    Returns:
+        str: String representation in markdown matrix format.
+    """
     ans = '\n'.join([' '.join(map(str, sublist)) for sublist in lst])
     return '```matrix\n' + ans + '\n```'
-    #return json.dumps(lst)
 
 sample_submission_path = '/kaggle/input/arc-prize-2025/sample_submission.json'
 
 # 获得矩阵size，以及每种颜色出现的次数
-def count_colors(matrix)->str:
+def count_colors(matrix) -> str:
     """
-    Count the occurrences of each color (0-9) in a matrix
-    Returns a dictionary with the count of each color value
+    Count the occurrences of each color (0-9) in a matrix and return a formatted string.
+    Args:
+        matrix (list): List of lists of integers representing the matrix.
+    Returns:
+        str: String with matrix dimensions and color counts.
     """
-    # Flatten the matrix and count occurrences
-    flattened = [cell for row in matrix for cell in row]
-    counts = Counter(flattened)
-    
-    # Format as a string with counts for each color
-    count_str = ", ".join([f"Color {color}: {count}" for color, count in sorted(counts.items())])
-    
-    # Add dimensions information
-    dimensions = f"[{len(matrix)}×{len(matrix[0])}]"
-    
-    return f"{dimensions} {count_str}"
+    # ...existing code...
 
 def get_case_llm_input(case_data):
     """
     Build the chat messages for a single ARC case, including:
-    - Training examples with object detection summaries
-    - All test inputs with object detection summaries
+        - Training examples with object detection summaries
+        - All test inputs with object detection summaries
+    Args:
+        case_data (dict): Dictionary containing 'train' and 'test' data for the ARC case.
+    Returns:
+        list: List of message dictionaries for the LLM.
     """
     # Get training data
     train_data_list = case_data['train']
@@ -975,7 +967,11 @@ def get_case_llm_input(case_data):
 
 def llm_predict(batch_data):
     """
-    Batch prediction function that extracts multiple solutions and applies them to all test inputs
+    Batch prediction function that extracts multiple solutions and applies them to all test inputs.
+    Args:
+        batch_data (list): List of tuples (case_id, message) for each ARC case.
+    Returns:
+        None. Updates the global submission dictionary.
     """
     # Check if we've reached the cutoff time
     if time.time() > cutoff_time:
@@ -1187,14 +1183,12 @@ def llm_predict(batch_data):
     
 def alter_zero(submission):
     """
-    检查submission中的所有case_id，如果存在attempt_1或attempt_2的结果是空或结果为[[0]]，
-    则替换为[[0,0],[0,0]]
-    
+    Check all case_ids in the submission. If attempt_1 or attempt_2 is empty or [[0]],
+    replace with [[0,0],[0,0]].
     Args:
-        submission (dict): 提交的结果字典
-        
+        submission (dict): The submission result dictionary.
     Returns:
-        dict: 修改后的提交字典
+        dict: The modified submission dictionary.
     """
     # 创建一个2x2的零矩阵作为替代值
     replacement = [[0, 0], [0, 0]]
@@ -1219,6 +1213,9 @@ def alter_zero(submission):
     return submission
 
 if __name__ == "__main__":
+    """
+    Main script execution for ARC solver. Loads data, runs LLM predictions, and saves submission.
+    """
     start_time = time.time()
     cutoff_time = start_time + (11 * 60 + 30) * 60
 
